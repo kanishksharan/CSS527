@@ -146,20 +146,22 @@ class msgEncrypt(userInputs): # This class will perform all the encryption opera
 						eboxRightBits.append(rightBits[eposition-1])
 						streboxRight = "".join(eboxRightBits)
 
+					# Converting streBoxRight to int
+					intEboxRight = int(streboxRight,2)
+
 					# Now Key1 XoR streboxRight
 					getKey1 = open("genKey.txt","r")
-					keyE1 = "".join(getKey1.readline())
+					keyE1 = "".join(getKey1.readline(56))
+					intkeyE1 = int(keyE1,2) # Converting the key to int
 
-					print (streboxRight, len(streboxRight))
-					print (keyE1,len(keyE1))
-					xorRK = int(streboxRight)^int(keyE1)
-					print(xorRK)
+					print (intEboxRight, len(streboxRight))
+					print (intkeyE1,len(keyE1))
+					xorRK = bin ((intEboxRight) ^ (intkeyE1))
 
-
-
-
-					# print (eboxRightBits)	
-					# print (streboxRight)	
+					# Extract only 48-bits from the XoR output
+					xorRK = xorRK[0:48]
+					print(xorRK,len(xorRK))
+	
 
 		
 
