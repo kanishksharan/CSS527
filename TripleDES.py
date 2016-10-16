@@ -121,11 +121,11 @@ class msgEncrypt(userInputs): # This class will perform all the encryption opera
 					plaintextBlock.clear()
 					print (tempBlock)
 
-					# Now divind the 64-bits input into L and R, each of 32-bits
+					# Now divide the 64-bits input into L and R, each of 32-bits
 					leftBits = tempBlock[0:32]
 					rightBits = tempBlock[32:64]
 
-					print (leftBits,len(leftBits))
+					print (leftBits,len(leftBits)) # We will come back to this after the P-Box shifting
 					print (rightBits,len(rightBits))
 
 					# Implementing E-box: Extending the R-32bits to 48-bits
@@ -352,23 +352,42 @@ class msgEncrypt(userInputs): # This class will perform all the encryption opera
 					print (outer1,center1)
 					print (table1)
 					print (b1)
+
+					print (outer2,center2)
+					print (table2)
+					print (b2,"\n")
+
+					print (outer3,center3)
+					print (table3)
+					print (b3,"\n")
+
+					print (outer4,center4)
+					print (table4)
+					print (b4,"\n")
+
 					sBox32 = list ([b1,b2,b3,b4,b5,b6,b7,b8])
-					print (sBox32)
+					sBox32 = "".join(sBox32)
+					print (sBox32,len(sBox32))
+
+					# Now the bits in sbox32 will be permuted through P-Box
+					pBox32 = list()
+
+					pBox = [16,   7,  20,  21,29,  12,  28,  17,1,  15,  23,  26,5,  18,  31,  10,2,   8,  24,  14,32,  27,   3,   9,19,  13,  30,   6,22,  11,  4,  25]
+					for position in pBox:
+						pBox32.append(sBox32[position-1])
 					
+					strpBox32 = "".join(pBox32) # Converted from list to string
+					strleftBits = "".join(leftBits) # Converted from list to string
+
+					# Now the bit in strpBox32 is XoR with strLeftBits
+					pXoR = bin(int(strpBox32,2) ^ int(strleftBits,2))[2:].zfill(32)
+					print (strpBox32)
+					print (strleftBits)
+					print (pXoR)
 
 
-					
+                    
 
-	
-
-		
-
-
-
-
-	
-
-		
 
 
 c1 = msgEncrypt()
