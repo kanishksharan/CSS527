@@ -309,15 +309,38 @@ class msgEncrypt(userInputs): # This class will perform all the encryption opera
 					        continue
 
 					left1,right1, middle1 = block1[0],block1[-1],block1[1:-1]
-					left2,right2, middle2 = block1[0],block1[-1],block1[1:-1]
-					left3,right3, middle3 = block1[0],block1[-1],block1[1:-1]
-					left4,right4, middle4 = block1[0],block1[-1],block1[1:-1]
-					left5,right5, middle5 = block1[0],block1[-1],block1[1:-1]
-					left6,right6, middle6 = block1[0],block1[-1],block1[1:-1]
-					left7,right7, middle7 = block1[0],block1[-1],block1[1:-1]
-					left8,right8, middle8 = block1[0],block1[-1],block1[1:-1]
+					outer1 = int(left1+right1,2)
+					center1 = int(middle1,2)
 
-					
+					left2,right2, middle2 = block1[0],block1[-1],block1[1:-1]
+					outer2 = int(left2+right2,2)
+					center2 = int(middle2,2)
+
+					left3,right3, middle3 = block1[0],block1[-1],block1[1:-1]
+					outer3 = int(left3+right3,2)
+					center3 = int(middle3,2)
+
+					left4,right4, middle4 = block1[0],block1[-1],block1[1:-1]
+					outer4 = int(left4+right4,2)
+					center4 = int(middle4,2)
+
+					left5,right5, middle5 = block1[0],block1[-1],block1[1:-1]
+					outer5 = int(left5+right5,2)
+					center5 = int(middle5,2)
+
+					left6,right6, middle6 = block1[0],block1[-1],block1[1:-1]
+					outer6 = int(left6+right6,2)
+					center6 = int(middle6,2)
+
+					left7,right7, middle7 = block1[0],block1[-1],block1[1:-1]
+					outer7 = int(left7+right7,2)
+					center7 = int(middle7,2)
+
+					left8,right8, middle8 = block1[0],block1[-1],block1[1:-1]
+					outer8 = int(left8+right8,2)
+					center8 = int(middle8,2)
+
+
 					
 
 	
