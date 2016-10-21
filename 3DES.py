@@ -112,6 +112,8 @@ feedEBox = list()
 lstLeftBits = list()
 lstxorRK = list()
 lstBlocks = list()
+lstPBox = list()
+lstFeeder = list()
 
 
 # Creating the method to Generate 16 round keys
@@ -406,7 +408,7 @@ def SBox():  # This function performs the tedious S-Box implementation
     lstLeftBits
     global lstxorRK
     global lstBlocks
-    print (lstxorRK)
+    # print (lstxorRK)
 
     sBox1 = [14, 4, 13, 1, 2, 15, 11, 8, 3, 10, 6, 12, 5, 9, 0, 7,
              0, 15, 7, 4, 14, 2, 13, 1, 10, 6, 12, 11, 9, 5, 3, 8,
@@ -524,7 +526,6 @@ def SBox():  # This function performs the tedious S-Box implementation
             i += 1
             continue  # Divide the 48-bits into 8 parts of 6-bits each
 
-
     for blocks in lstxorRK:
         block1 = blocks[0:6]
         block2 = blocks[6:12]
@@ -576,9 +577,55 @@ def SBox():  # This function performs the tedious S-Box implementation
         b7 = bin(table7[outer7][center7])[2:].zfill(4)
         b8 = bin(table8[outer8][center8])[2:].zfill(4)
 
-        cBlocks = list([b1,b2,b3,b4,b5,b6,b7,b8])
+        cBlocks = list([b1, b2, b3, b4, b5, b6, b7, b8])
         sBlocks = "".join(cBlocks)
         lstBlocks.append(sBlocks)
-    print (lstBlocks,len(lstBlocks),len(lstBlocks[3]))
+        # print (lstBlocks,len(lstBlocks),len(lstBlocks[3]))
+
 
 SBox()
+
+
+def PBox():
+    global lstLeftBits
+    global lstBlocks
+    global lstPBox
+    global lstFeeder
+    # print(lstLeftBits, len(lstLeftBits), len(lstLeftBits[12]))
+    # print(lstBlocks, len(lstBlocks), len(lstBlocks[12]))
+
+    tempPBox = list()
+    strPBox = ""
+
+    Pbox = [16, 7, 20, 21,
+            29, 12, 28, 17,
+            1, 15, 23, 26,
+            5, 18, 31, 10,
+            2, 8, 24, 14,
+            32, 27, 3, 9,
+            19, 13, 30, 6,
+            22, 11, 4, 25]
+
+    for blocks in lstBlocks:
+        for position in Pbox:
+            tempPBox.append(blocks[position - 1])
+        strPBox = "".join(tempPBox)
+        lstPBox.append(strPBox)
+        tempPBox.clear()
+
+    counter = 0
+    for lblocks in lstLeftBits:
+        temppbox = lstPBox[counter]
+        intpbox = int (temppbox,2)
+        intblocks = int (lblocks,2)
+        pxor = bin(intpbox ^ intblocks)[2:].zfill(32)
+        counter += 1
+
+        print (pxor,len(pxor))
+        lstFeeder.append(pxor)
+    print (lstFeeder,len(lstFeeder),len(lstFeeder[15]))
+
+
+
+
+PBox()
