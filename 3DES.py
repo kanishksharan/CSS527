@@ -13,6 +13,7 @@ print("In order to perform a successful run, provide the following as input para
 plaintextFileName = str(input())
 userPassword = str(input())
 
+
 # This function performs the left circular shift
 
 
@@ -85,7 +86,6 @@ with open("genKey.txt") as genKey:
         elif iteration_counter == 2:
             hashKey3 = lines.strip()
 
-
         iteration_counter += 1
 
 genKey.close()
@@ -107,11 +107,13 @@ roundKey15 = ""
 roundKey14 = ""
 roundKey16 = ""
 binPlainText = ""
+lstIV = list()
+feedEBox = list()
+
 
 # Creating the method to Generate 16 round keys
 
 def roundKeyGen(keyx):
-
     # Declaring global variables inside the function
     global roundKey1
     global roundKey2
@@ -154,9 +156,6 @@ def roundKeyGen(keyx):
     passwordC = password[:28]
     passwordD = password[28:56]
 
-
-
-    
     for iteration in range(1, 17):
 
         if iteration in (1, 2, 9, 16):
@@ -184,7 +183,6 @@ def roundKeyGen(keyx):
                 dShift16 = leftCircularShift(dShift15, iteration)
                 shiftKey16 = str(cShift16 + dShift16)
                 roundKey16 = FinalPermutation(shiftKey16)
-
 
         if iteration in (3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15):
 
@@ -253,68 +251,143 @@ def roundKeyGen(keyx):
                 shiftKey15 = str(cShift15 + dShift15)
                 roundKey15 = FinalPermutation(shiftKey15)
 
-    return roundKey1,roundKey2,roundKey3,roundKey4,roundKey5,roundKey6,roundKey7,roundKey8,roundKey9,roundKey10,roundKey11,roundKey12,roundKey13,roundKey14,roundKey15,roundKey16
+    return roundKey1, roundKey2, roundKey3, roundKey4, roundKey5, roundKey6, roundKey7, roundKey8, roundKey9, roundKey10, roundKey11, roundKey12, roundKey13, roundKey14, roundKey15, roundKey16
 
-def FinalPermutation (shiftkey):
 
-    IP2 = [40     ,8   ,48    ,16    ,56   ,24    ,64   ,32,
-            39     ,7   ,47    ,15    ,55   ,23    ,63   ,31,
-            38     ,6   ,46    ,14    ,54   ,22    ,62   ,30,
-            37     ,5   ,45    ,13    ,53   ,21    ,61   ,29,
-            36     ,4   ,44    ,12    ,52   ,20    ,60   ,28,
-            35     ,3   ,43    ,11    ,51   ,19    ,59   ,27,
-            34     ,2   ,42    ,10    ,50   ,18    ,58   ,26,
-            33     ,1   ,41     ,9    ,49   ,17    ,57   ,25]
+def FinalPermutation(shiftkey):
+    IP2 = [40, 8, 48, 16, 56, 24, 64, 32,
+           39, 7, 47, 15, 55, 23, 63, 31,
+           38, 6, 46, 14, 54, 22, 62, 30,
+           37, 5, 45, 13, 53, 21, 61, 29,
+           36, 4, 44, 12, 52, 20, 60, 28,
+           35, 3, 43, 11, 51, 19, 59, 27,
+           34, 2, 42, 10, 50, 18, 58, 26,
+           33, 1, 41, 9, 49, 17, 57, 25]
 
     iteration_counter = 0
     keyLst = list()
     for position in IP2:
 
+        if position > 48:
+            pass
 
-            if position > 48:
-                pass
-
-            else:
-                if iteration_counter < 48:
-                    keyLst.append(shiftkey[position - 1])
-                    iteration_counter += 1
+        else:
+            if iteration_counter < 48:
+                keyLst.append(shiftkey[position - 1])
+                iteration_counter += 1
 
     key = "".join(keyLst)
     return key
 
-def pkcs5():
 
+def pkcs5():
     global binPlainText
     # Reading plaintext from the file
     tempPlaintext = ""
     paddedPlainText = ""
     concatPlainText = ""
 
-    filePlainText = open ("inputFile.txt","r")
+    filePlainText = open("inputFile.txt", "r")
     copyPlaintext = ("\n".join(filePlainText.readlines()))
     filePlainText.close()
 
     # Converting plaintext to Hexademical
     for bits in copyPlaintext:
-            tempPlaintext = bits.encode ('utf-8')
-            paddedPlainText = binascii.hexlify(tempPlaintext)
-            concatPlainText += (paddedPlainText).decode("utf-8")
-
+        tempPlaintext = bits.encode('utf-8')
+        paddedPlainText = binascii.hexlify(tempPlaintext)
+        concatPlainText += (paddedPlainText).decode("utf-8")
 
     # Performing PKCS5 padding
     padLen = (64 - (len(concatPlainText) % 64))
-    padBlocks = int(padLen/8)
-    mod = padLen%8
+    padBlocks = int(padLen / 8)
+    mod = padLen % 8
 
     concatPlainText += "0" * mod
-    concatPlainText += ("0"+str(padBlocks)) * int((padLen-2)/2)
+    concatPlainText += ("0" + str(padBlocks)) * int((padLen - 2) / 2)
 
     # Converting text from hex to decimal
     binPlainText = bin(int(concatPlainText, 16))[2:]
 
-    while (len(binPlainText)%64 != 0):
-            binPlainText += "0" * (len(binPlainText)%64)
-    
+    if len(binPlainText) % 64 != 0:
+        while (len(binPlainText) % 64 != 0):
+            binPlainText += "0" * (len(binPlainText) % 64)
+
+
+pkcs5()
+
+totalPlainTextBlocks = int(len(binPlainText) / 64)
+for iteration in range(0, totalPlainTextBlocks):
+    randomIV = os.urandom(8)
+    randomIVHex = binascii.hexlify(randomIV)
+    ivhexSize = len(randomIVHex)
+    IV = (bin(int(randomIVHex, 16))[2:]).zfill(64)
+    lstIV.append(IV)
+
+
+def IP():
+    IP = [58, 50, 42, 34, 26, 18, 10, 2,
+          60, 52, 44, 36, 28, 20, 12, 4,
+          62, 54, 46, 38, 30, 22, 14, 6,
+          64, 56, 48, 40, 32, 24, 16, 8,
+          57, 49, 41, 33, 25, 17, 9, 1,
+          59, 51, 43, 35, 27, 19, 11, 3,
+          61, 53, 45, 37, 29, 21, 13, 5,
+          63, 55, 47, 39, 31, 23, 15, 7]
+
+    tempShift = list()
+    for element in lstIV:  # Iterate through each IV from the IV list: lstIV
+        for position in IP:  # Bit shifting
+
+            tempShift.append(element[position - 1])
+
+        tempStr = "".join(tempShift)
+        feedEBox.append(tempStr)
+        tempShift.clear()
+    print(feedEBox)
+    print(len(feedEBox))
+    return feedEBox
+
 
 roundKeyGen(hashKey1)
 pkcs5()
+IP()
+
+lstRoundKey = (
+[roundKey1, roundKey2, roundKey3, roundKey4, roundKey5, roundKey6, roundKey7, roundKey8, roundKey9, roundKey10,
+ roundKey11, roundKey12, roundKey13, roundKey14, roundKey15, roundKey16])
+
+
+def EBox():
+
+
+    eboxRightBits = list()
+    stringRBits = ""
+    Ebox = [32, 1, 2, 3, 4, 5,
+            4, 5, 6, 7, 8, 9,
+            8, 9, 10, 11, 12, 13,
+            12, 13, 14, 15, 16, 17,
+            16, 17, 18, 19, 20, 21,
+            20, 21, 22, 23, 24, 25,
+            24, 25, 26, 27, 28, 29,
+            28, 29, 30, 31, 32, 1]
+    # Now divide the 64-bits input into L and R, each of 32-bits
+
+
+    for tempBlock in feedEBox:
+        leftBits = tempBlock[0:32]
+        rightBits = tempBlock[32:64]
+        for eposition in Ebox:
+            eboxRightBits.append(rightBits[eposition - 1])
+            stringRBits = "".join(eboxRightBits)
+        for keys in lstRoundKey:
+            # Now we XoR stringRBits ^ Key1
+            intRBits = int(stringRBits, 2)
+            keyX = int(keys, 2)
+            intxorRK = intRBits ^ keyX
+            xorRK = bin(intxorRK)[2:].zfill(48)
+            eboxRightBits.clear()
+            print(xorRK)
+            print(len(xorRK))
+
+EBox()
+print(lstRoundKey)
