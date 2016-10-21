@@ -111,6 +111,7 @@ lstIV = list()
 feedEBox = list()
 lstLeftBits = list()
 lstxorRK = list()
+lstBlocks = list()
 
 
 # Creating the method to Generate 16 round keys
@@ -403,7 +404,9 @@ EBox()
 def SBox():  # This function performs the tedious S-Box implementation
 
     lstLeftBits
-    lstxorRK
+    global lstxorRK
+    global lstBlocks
+    print (lstxorRK)
 
     sBox1 = [14, 4, 13, 1, 2, 15, 11, 8, 3, 10, 6, 12, 5, 9, 0, 7,
              0, 15, 7, 4, 14, 2, 13, 1, 10, 6, 12, 11, 9, 5, 3, 8,
@@ -445,8 +448,83 @@ def SBox():  # This function performs the tedious S-Box implementation
              7, 11, 4, 1, 9, 12, 14, 2, 0, 6, 10, 13, 15, 3, 5, 8,
              2, 1, 14, 7, 4, 10, 8, 13, 15, 12, 9, 0, 3, 5, 6, 11]
 
+    # Create 8 2-D Arrays to store the table values
+    row = 4
+    col = 16
 
-# Divide the 48-bits into 8 parts of 6-bits each
+    table1 = [[0 for c in range(col)] for r in range(row)]
+    table2 = [[0 for c in range(col)] for r in range(row)]
+    table3 = [[0 for c in range(col)] for r in range(row)]
+    table4 = [[0 for c in range(col)] for r in range(row)]
+    table5 = [[0 for c in range(col)] for r in range(row)]
+    table6 = [[0 for c in range(col)] for r in range(row)]
+    table7 = [[0 for c in range(col)] for r in range(row)]
+    table8 = [[0 for c in range(col)] for r in range(row)]
+
+    i = 0
+    for r in range(0, 4):
+        for c in range(0, 16):
+            table1[r][c] = sBox1[i]
+            i += 1
+            continue
+
+    # Filling elements in table2 from sBox2
+    i = 0
+    for r in range(0, 4):
+        for c in range(0, 16):
+            table2[r][c] = sBox2[i]
+            i += 1
+            continue
+
+    # Filling elements in table3 from sBox3
+    i = 0
+    for r in range(0, 4):
+        for c in range(0, 16):
+            table3[r][c] = sBox3[i]
+            i += 1
+            continue
+
+    # Filling elements in table4 from sBox4
+    i = 0
+    for r in range(0, 4):
+        for c in range(0, 16):
+            table4[r][c] = sBox4[i]
+            i += 1
+            continue
+
+    # Filling elements in table5 from sBox5
+    i = 0
+    for r in range(0, 4):
+        for c in range(0, 16):
+            table5[r][c] = sBox5[i]
+            i += 1
+            continue
+
+    # Filling elements in table6 from sBox6
+    i = 0
+    for r in range(0, 4):
+        for c in range(0, 16):
+            table6[r][c] = sBox6[i]
+            i += 1
+            continue
+
+    # Filling elements in table7 from sBox7
+    i = 0
+    for r in range(0, 4):
+        for c in range(0, 16):
+            table7[r][c] = sBox7[i]
+            i += 1
+            continue
+
+    # Filling elements in table8 from sBox8
+    i = 0
+    for r in range(0, 4):
+        for c in range(0, 16):
+            table8[r][c] = sBox8[i]
+            i += 1
+            continue  # Divide the 48-bits into 8 parts of 6-bits each
+
+
     for blocks in lstxorRK:
         block1 = blocks[0:6]
         block2 = blocks[6:12]
@@ -456,5 +534,51 @@ def SBox():  # This function performs the tedious S-Box implementation
         block6 = blocks[30:36]
         block7 = blocks[36:42]
         block8 = blocks[42:48]
+
+        left1, right1, middle1 = block1[0], block1[-1], block1[1:-1]
+        outer1 = int(left1 + right1, 2)
+        center1 = int(middle1, 2)
+
+        left2, right2, middle2 = block2[0], block2[-1], block2[1:-1]
+        outer2 = int(left2 + right2, 2)
+        center2 = int(middle2, 2)
+
+        left3, right3, middle3 = block3[0], block3[-1], block3[1:-1]
+        outer3 = int(left3 + right3, 2)
+        center3 = int(middle3, 2)
+
+        left4, right4, middle4 = block4[0], block4[-1], block4[1:-1]
+        outer4 = int(left4 + right4, 2)
+        center4 = int(middle4, 2)
+
+        left5, right5, middle5 = block5[0], block5[-1], block5[1:-1]
+        outer5 = int(left5 + right5, 2)
+        center5 = int(middle5, 2)
+
+        left6, right6, middle6 = block6[0], block6[-1], block6[1:-1]
+        outer6 = int(left6 + right6, 2)
+        center6 = int(middle6, 2)
+
+        left7, right7, middle7 = block7[0], block7[-1], block7[1:-1]
+        outer7 = int(left7 + right7, 2)
+        center7 = int(middle7, 2)
+
+        left8, right8, middle8 = block8[0], block8[-1], block8[1:-1]
+        outer8 = int(left8 + right8, 2)
+        center8 = int(middle8, 2)
+
+        b1 = bin(table1[outer1][center1])[2:].zfill(4)
+        b2 = bin(table2[outer2][center2])[2:].zfill(4)
+        b3 = bin(table3[outer3][center3])[2:].zfill(4)
+        b4 = bin(table4[outer4][center4])[2:].zfill(4)
+        b5 = bin(table5[outer5][center5])[2:].zfill(4)
+        b6 = bin(table6[outer6][center6])[2:].zfill(4)
+        b7 = bin(table7[outer7][center7])[2:].zfill(4)
+        b8 = bin(table8[outer8][center8])[2:].zfill(4)
+
+        cBlocks = list([b1,b2,b3,b4,b5,b6,b7,b8])
+        sBlocks = "".join(cBlocks)
+        lstBlocks.append(sBlocks)
+    print (lstBlocks,len(lstBlocks),len(lstBlocks[3]))
 
 SBox()
