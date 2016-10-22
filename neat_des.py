@@ -89,6 +89,8 @@ sBlocks = ""
 LplusR = ""
 pxor = ""
 lstPlainText = list()
+lstCipher = list ()
+
 strLeftBits = ""
 xorRK = ""
 lstBlocks = list()
@@ -613,6 +615,7 @@ def Encrypt():
     global sBlocks
     global binPlainText
     global lstPlainText
+    global lstCipher
 
     loopcounter = 0
     EncryptExit = ""
@@ -655,8 +658,9 @@ def Encrypt():
         intEncryptExit = int(EncryptExit, 2)
         FinalCipher = bin(intCipher ^ intEncryptExit)[2:].zfill(64)
         iterator += 1
-
-    return FinalCipher
+        lstCipher.append(hex(int(FinalCipher)))
+        
+    return lstCipher
 
 # This function breaks the plaintext into 64 bit blocks
 def PlaintextChunks(plaintext):
