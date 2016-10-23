@@ -382,7 +382,7 @@ def EBox(l, r, loopcounter):
     # Now divide the 64-bits input into L and R, each of 32-bits
     # leftBits = ip[0:32]
     # rightBits = ip[32:64]
-    currentRoundKey = lstRoundKey[loopcounter]
+    currentRoundKey = lstRoundKey[loopcounter]# Fetching the round key
 
     for eposition in Ebox:
         eboxRightBits.append(r[eposition - 1])
@@ -645,11 +645,12 @@ def Encrypt():
             EBox(leftBits, rightBits, loopcounter)
             SBox(xorRK)
             PBox(sBlocks, leftBits)
-            LplusR = str(pxor) + str(rightBits)
+            LplusR = str(rightBits) + str(pxor)
 
-            for position in FP:
-                tempFP.append(LplusR[position - 1])
-            EncryptExit = "".join(tempFP)
+            if loopcounter == 15:
+                for position in FP:
+                    tempFP.append(LplusR[position - 1])
+                EncryptExit = "".join(tempFP)
             loopcounter += 1
 
         cipher1 = lstPlainText[loopcounter]
@@ -658,8 +659,9 @@ def Encrypt():
         intEncryptExit = int(EncryptExit, 2)
         FinalCipher = bin(intCipher ^ intEncryptExit)[2:].zfill(64)
         iterator += 1
-        lstCipher.append(hex(int(FinalCipher)))
-        
+        lstCipher.append()
+        # lstCipher.append(hex(int(FinalCipher,2)))
+
     return lstCipher
 
 # This function breaks the plaintext into 64 bit blocks
@@ -679,3 +681,64 @@ def PlaintextChunks(plaintext):
         lst.clear()
 
     return lstPlainText
+
+
+
+
+def Decrypt():
+    global feedEBox
+    global LplusR
+    global key1
+    global lstIV
+    global pxor
+    global xorRK
+    global sBlocks
+    global binPlainText
+    global lstPlainText
+    global lstCipher
+
+    loopcounter = 15
+    EncryptExit = ""
+    tempFP = list()
+    LplusR = feedEBox
+    FinalCipher = ""
+    cipher1 = ""
+    iterator = 0
+    roundKeyGen(key1)
+    # PlaintextChunks(binPlainText)
+
+    FP = [40, 8, 48, 16, 56, 24, 64, 32
+        , 39, 7, 47, 15, 55, 23, 63, 31
+        , 38, 6, 46, 14, 54, 22, 62, 30
+        , 37, 5, 45, 13, 53, 21, 61, 29
+        , 36, 4, 44, 12, 52, 20, 60, 28
+        , 35, 3, 43, 11, 51, 19, 59, 27
+        , 34, 2, 42, 10, 50, 18, 58, 26
+        , 33, 1, 41, 9, 49, 17, 57, 25]
+
+    for ciphers in lstCipher:
+        IP(ciphers)
+
+        while loopcounter >= 0:
+            leftBits = LplusR[0:32]
+            rightBits = LplusR[32:64]
+            EBox(leftBits, rightBits, loopcounter)
+            SBox(xorRK)
+            PBox(sBlocks, leftBits)
+            LplusR = str(rightBits) + str(pxor)
+
+            if loopcounter == 0:
+                for position in FP:
+                    tempFP.append(LplusR[position - 1])
+                EncryptExit = "".join(tempFP)
+            loopcounter += 1
+
+        cipher1 = lstPlainText[loopcounter]
+
+        intCipher = int(cipher1, 2)
+        intEncryptExit = int(EncryptExit, 2)
+        FinalCipher = bin(intCipher ^ intEncryptExit)[2:].zfill(64)
+        iterator += 1
+        lstCipher.append(hex(int(FinalCipher,2)))
+
+    return lstCipher
