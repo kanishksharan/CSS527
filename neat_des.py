@@ -45,6 +45,8 @@ hashKey2 = ""
 hashKey3 = ""
 iteration_counter = 0
 
+
+
 # Reading the 3 hashed keys from the file one by one and storing them in the "hashkey" variables
 with open("genKey.txt") as genKey:
     for lines in genKey:
@@ -61,7 +63,7 @@ with open("genKey.txt") as genKey:
         iteration_counter += 1
 
 genKey.close()
-
+print (hashKey1)
 # Declaring global variables
 roundKey1 = ""
 roundKey2 = ""
@@ -79,9 +81,7 @@ roundKey13 = ""
 roundKey15 = ""
 roundKey14 = ""
 roundKey16 = ""
-lstRoundKey = list(
-    [roundKey1, roundKey2, roundKey3, roundKey4, roundKey5, roundKey6, roundKey7, roundKey8, roundKey9, roundKey10,
-     roundKey11, roundKey12, roundKey13, roundKey14, roundKey15, roundKey16])
+lstRoundKey = list()
 binPlainText = ""
 lstIV = list()
 feedEBox = ""
@@ -97,8 +97,76 @@ lstBlocks = list()
 lstPBox = list()
 lstFeeder = list()
 
+# PKCS 5
 
-# Function to perform Left Circular Shifts for round keys
+def pkcs5():
+    global binPlainText
+    # Reading plaintext from the file
+    tempPlaintext = ""
+    paddedPlainText = ""
+    concatPlainText = ""
+
+    filePlainText = open("inputFile.txt", "r")
+    copyPlaintext = ("\n".join(filePlainText.readlines()))
+    filePlainText.close()
+    # Converting plaintext to Hexademical
+    for bits in copyPlaintext:
+        tempPlaintext = bits.encode('utf-8')
+        paddedPlainText = binascii.hexlify(tempPlaintext)
+        concatPlainText += (paddedPlainText).decode("utf-8")
+
+    # Performing PKCS5 padding
+    padLen = (64 - (len(concatPlainText) % 64))
+    padBlocks = int(padLen / 8)
+    mod = padLen % 8
+
+    concatPlainText += "0" * mod
+    concatPlainText += ("0" + str(padBlocks)) * int((padLen - 2) / 2)
+
+    # Converting text from hex to Binary
+    binPlainText = bin(int(concatPlainText, 16))[2:]
+
+    if len(binPlainText) % 64 != 0:
+        while (len(binPlainText) % 64 != 0):
+            binPlainText += "0" * (len(binPlainText) % 64)
+
+pkcs5()
+
+
+
+
+def PlaintextChunks(plaintext = []):
+    global lstPlainText
+    f = 0
+    l = 64
+    lst = list()
+
+    while l <= len(plaintext):
+        for i in range(0, 1):
+            lst.append(plaintext[f:l])
+        f += 64
+        l += 64
+        strng = "".join(lst)
+        lstPlainText.append(strng)
+        lst.clear()
+
+    return lstPlainText
+PlaintextChunks(binPlainText)
+
+
+
+totalPlainTextBlocks = int(len(binPlainText) / 64)
+randomIV = os.urandom(8)
+
+for iteration in range(0, totalPlainTextBlocks):
+    randomIVHex = binascii.hexlify(randomIV)
+    ivhexSize = len(randomIVHex)
+    IV = (bin(int(randomIVHex, 16))[2:]).zfill(64)
+    lstIV.append(IV)
+    IV += bin(1)
+
+
+
 def leftCircularShift(strBinary, j):
     iterator = [x for x in range(0, len(strBinary))]
     iteratorLst = list(strBinary)
@@ -124,8 +192,6 @@ def leftCircularShift(strBinary, j):
 
     return strShift
 
-
-# This function performs the PC2 for the keys
 def SecondPermutation(shiftkey):
     PC2 = [14, 17, 11, 24, 1, 5
         , 3, 28, 15, 6, 21, 10
@@ -151,8 +217,6 @@ def SecondPermutation(shiftkey):
     key = "".join(keyLst)
     return key
 
-
-# Creating the method to Generate 16 round keys
 def roundKeyGen(key1):
     # Declaring global variables inside the function
     global roundKey1
@@ -171,6 +235,7 @@ def roundKeyGen(key1):
     global roundKey14
     global roundKey15
     global roundKey16
+    global lstRoundKey
 
     initialKey = key1
     passwordLst = list()
@@ -185,7 +250,7 @@ def roundKeyGen(key1):
         , 21, 13, 5, 28, 20, 12, 4]
 
     for position in PC1:
-        if position > 56:
+        if position > 56 or position in (8, 16, 24, 32, 40, 48, 56, 64):
             pass
 
         else:
@@ -290,61 +355,19 @@ def roundKeyGen(key1):
 
                 shiftKey15 = str(cShift15 + dShift15)
                 roundKey15 = SecondPermutation(shiftKey15)
+    lstRoundKey = [roundKey1, roundKey2, roundKey3, roundKey4, roundKey5, roundKey6, roundKey7, roundKey8, roundKey9, roundKey10, roundKey11, roundKey12, roundKey13, roundKey14, roundKey15, roundKey16]
 
     return roundKey1, roundKey2, roundKey3, roundKey4, roundKey5, roundKey6, roundKey7, roundKey8, roundKey9, roundKey10, roundKey11, roundKey12, roundKey13, roundKey14, roundKey15, roundKey16
 
 
-# This function performs the PKCS5 padding to the plaintext
-def pkcs5():
-    global binPlainText
-    # Reading plaintext from the file
-    tempPlaintext = ""
-    paddedPlainText = ""
-    concatPlainText = ""
 
-    filePlainText = open("inputFile.txt", "r")
-    copyPlaintext = ("\n".join(filePlainText.readlines()))
-    filePlainText.close()
-
-    # Converting plaintext to Hexademical
-    for bits in copyPlaintext:
-        tempPlaintext = bits.encode('utf-8')
-        paddedPlainText = binascii.hexlify(tempPlaintext)
-        concatPlainText += (paddedPlainText).decode("utf-8")
-
-    # Performing PKCS5 padding
-    padLen = (64 - (len(concatPlainText) % 64))
-    padBlocks = int(padLen / 8)
-    mod = padLen % 8
-
-    concatPlainText += "0" * mod
-    concatPlainText += ("0" + str(padBlocks)) * int((padLen - 2) / 2)
-
-    # Converting text from hex to Binary
-    binPlainText = bin(int(concatPlainText, 16))[2:]
-
-    if len(binPlainText) % 64 != 0:
-        while (len(binPlainText) % 64 != 0):
-            binPlainText += "0" * (len(binPlainText) % 64)
-
-
-# generating the Initialization Vector and storing them in a list
-# Here we know the number of IVs needed to encrypt this text
-# We have divided the total length of input text by 64
-
-totalPlainTextBlocks = int(len(binPlainText) / 64)
-randomIV = os.urandom(8)
-for iteration in range(0, totalPlainTextBlocks):
-    randomIVHex = binascii.hexlify(randomIV)
-    ivhexSize = len(randomIVHex)
-    IV = (bin(int(randomIVHex, 16))[2:]).zfill(64)
-    lstIV.append(IV)
-    randomIV += 1
 
 
 # This method performs the initial permutations
+
 def IP(iv):
-    IP = [58, 50, 42, 34, 26, 18, 10, 2,
+    global feedEBox
+    tableIP = [58, 50, 42, 34, 26, 18, 10, 2,
           60, 52, 44, 36, 28, 20, 12, 4,
           62, 54, 46, 38, 30, 22, 14, 6,
           64, 56, 48, 40, 32, 24, 16, 8,
@@ -354,7 +377,7 @@ def IP(iv):
           63, 55, 47, 39, 31, 23, 15, 7]
 
     tempShift = list()
-    for position in IP:  # Bit shifting
+    for position in tableIP:  # Bit shifting
 
         tempShift.append(iv[position - 1])
 
@@ -362,13 +385,13 @@ def IP(iv):
 
     return feedEBox
 
-
-# This function performs E-Box manipulation
 def EBox(l, r, loopcounter):
     strLeftBits = l
 
     eboxRightBits = list()
     leftBits = ""
+    global lstRoundKey
+    global xorRK
 
     Ebox = [32, 1, 2, 3, 4, 5,
             4, 5, 6, 7, 8, 9,
@@ -399,7 +422,7 @@ def EBox(l, r, loopcounter):
 # This function performs the xbox
 def SBox(xorRK):  # This function performs the tedious S-Box implementation
 
-
+    global sBlocks
     lstxorRK = xorRK
     # print (lstxorRK)
 
@@ -579,6 +602,8 @@ def PBox(sBlocks, lstLeftBits):
     global lstBlocks
     global lstPBox
     global lstFeeder
+    global pxor
+
     # print(lstLeftBits, len(lstLeftBits), len(lstLeftBits[12]))
     # print(lstBlocks, len(lstBlocks), len(lstBlocks[12]))
 
@@ -604,7 +629,6 @@ def PBox(sBlocks, lstLeftBits):
 
     return pxor
 
-
 def Encrypt():
     global feedEBox
     global LplusR
@@ -620,87 +644,7 @@ def Encrypt():
     loopcounter = 0
     EncryptExit = ""
     tempFP = list()
-    LplusR = feedEBox
-    FinalCipher = ""
-    cipher1 = ""
-    iterator = 0
-    roundKeyGen(key1)
-    PlaintextChunks(binPlainText)
 
-    FP = [40, 8, 48, 16, 56, 24, 64, 32
-        , 39, 7, 47, 15, 55, 23, 63, 31
-        , 38, 6, 46, 14, 54, 22, 62, 30
-        , 37, 5, 45, 13, 53, 21, 61, 29
-        , 36, 4, 44, 12, 52, 20, 60, 28
-        , 35, 3, 43, 11, 51, 19, 59, 27
-        , 34, 2, 42, 10, 50, 18, 58, 26
-        , 33, 1, 41, 9, 49, 17, 57, 25]
-
-    for iv in lstIV:
-        IP(iv)
-
-        while loopcounter < 16:
-            leftBits = LplusR[0:32]
-            rightBits = LplusR[32:64]
-            EBox(leftBits, rightBits, loopcounter)
-            SBox(xorRK)
-            PBox(sBlocks, leftBits)
-            LplusR = str(rightBits) + str(pxor)
-
-            if loopcounter == 15:
-                for position in FP:
-                    tempFP.append(LplusR[position - 1])
-                EncryptExit = "".join(tempFP)
-            loopcounter += 1
-
-        cipher1 = lstPlainText[loopcounter]
-
-        intCipher = int(cipher1, 2)
-        intEncryptExit = int(EncryptExit, 2)
-        FinalCipher = bin(intCipher ^ intEncryptExit)[2:].zfill(64)
-        iterator += 1
-        lstCipher.append()
-        # lstCipher.append(hex(int(FinalCipher,2)))
-
-    return lstCipher
-
-# This function breaks the plaintext into 64 bit blocks
-def PlaintextChunks(plaintext):
-    global lstPlainText
-    f = 0
-    l = 64
-    lst = list()
-
-    while l <= len(plaintext):
-        for i in range(0, 1):
-            lst.append(str[f:l])
-        f += 64
-        l += 64
-        strng = "".join(lst)
-        lstPlainText.append(strng)
-        lst.clear()
-
-    return lstPlainText
-
-
-
-
-def Decrypt():
-    global feedEBox
-    global LplusR
-    global key1
-    global lstIV
-    global pxor
-    global xorRK
-    global sBlocks
-    global binPlainText
-    global lstPlainText
-    global lstCipher
-
-    loopcounter = 15
-    EncryptExit = ""
-    tempFP = list()
-    LplusR = feedEBox
     FinalCipher = ""
     cipher1 = ""
     iterator = 0
@@ -716,10 +660,11 @@ def Decrypt():
         , 34, 2, 42, 10, 50, 18, 58, 26
         , 33, 1, 41, 9, 49, 17, 57, 25]
 
-    for ciphers in lstCipher:
-        IP(ciphers)
-
-        while loopcounter >= 0:
+    for iv in lstIV:
+        IP(iv)
+        LplusR = feedEBox
+        # c = lstIV.index(iv)
+        while loopcounter < 16:
             leftBits = LplusR[0:32]
             rightBits = LplusR[32:64]
             EBox(leftBits, rightBits, loopcounter)
@@ -727,18 +672,24 @@ def Decrypt():
             PBox(sBlocks, leftBits)
             LplusR = str(rightBits) + str(pxor)
 
-            if loopcounter == 0:
+            if loopcounter == 15:
                 for position in FP:
                     tempFP.append(LplusR[position - 1])
                 EncryptExit = "".join(tempFP)
             loopcounter += 1
 
-        cipher1 = lstPlainText[loopcounter]
+        cipher1 = lstPlainText[iterator]
 
         intCipher = int(cipher1, 2)
         intEncryptExit = int(EncryptExit, 2)
         FinalCipher = bin(intCipher ^ intEncryptExit)[2:].zfill(64)
         iterator += 1
-        lstCipher.append(hex(int(FinalCipher,2)))
+        lstCipher.append(FinalCipher)
+        # lstCipher.append(hex(int(FinalCipher,2)))
+        print (lstCipher)
 
     return lstCipher
+
+Encrypt()
+
+
