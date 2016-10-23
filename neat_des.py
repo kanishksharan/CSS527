@@ -29,9 +29,14 @@ finalPassword = (bin(int(hashPassword, 16))[2:]).zfill(hashPasswordSize)
 # 0-55 bits = Key1
 # 55-109 bits = Key2
 # 110-165 bits = key3
-key1 = finalPassword[0:56]
-key2 = finalPassword[56:112]
-key3 = finalPassword[114:170]
+key1 = finalPassword[0:64]
+key2 = finalPassword[64:128]
+key3 = finalPassword[128:192]
+
+# print ("key1",len(key1))
+# print ("key2",len(key2))
+# print ("key3",len(key3))
+
 
 # Writing the keys to the file
 filegenKey = open("genKey.txt", "w")
@@ -64,7 +69,7 @@ with open("genKey.txt") as genKey:
         iteration_counter += 1
 
 genKey.close()
-print (hashKey1)
+
 # Declaring global variables
 roundKey1 = ""
 roundKey2 = ""
@@ -119,7 +124,7 @@ def pkcs5():
         paddedPlainText = binascii.hexlify(tempPlaintext)
         concatPlainText += (paddedPlainText).decode("utf-8")
 
-    print(concatPlainText, len(concatPlainText))
+    # print(concatPlainText, len(concatPlainText))
     numbers = {0: "0", 1: "1", 2: "2", 3: "3", 4: "4", 5: "5", 6: "6", 7: "7", 8: "8", 9: "9", 10: "10", 11: "11", 12: "12",
                13: "13", 14: "14", 15: "15", 16: "16", 17: "17", 18: "18",
                19: "19", 20: "20", 21: "21", 22: "22", 23: "23", 24: "24", 25: "25", 26: "26", 27: "27", 28: "28", 29: "29",
@@ -137,6 +142,11 @@ def pkcs5():
         concatPlainText += numbers.get(padding) * times
         intPlainText = int(concatPlainText, 16)
         binPlainText = bin (intPlainText)[2:].zfill(len(concatPlainText)*4)
+    else:
+        intPlainText = int(concatPlainText, 16)
+        binPlainText = bin (intPlainText)[2:].zfill(len(concatPlainText)*4)
+
+    return binPlainText
 
 pkcs5()
 
@@ -162,7 +172,7 @@ def PlaintextChunks(plaintext):
 PlaintextChunks(binPlainText)
 
 
-
+# Generating Initialization Vector
 totalPlainTextBlocks = int(len(binPlainText) / 64)
 randomIV = os.urandom(8)
 
@@ -172,6 +182,7 @@ for iteration in range(0, totalPlainTextBlocks):
     IV = (bin(int(randomIVHex, 16))[2:]).zfill(64)
     lstIV.append(IV)
     IV += bin(1)
+    print (lstIV)
 
 
 
@@ -257,12 +268,9 @@ def roundKeyGen(key1):
         , 14, 6, 61, 53, 45, 37, 29
         , 21, 13, 5, 28, 20, 12, 4]
 
-    for position in PC1:
-        if position > 56 or position in (8, 16, 24, 32, 40, 48, 56, 64):
-            pass
 
-        else:
-            passwordLst.append(initialKey[position - 1])
+    for position in PC1:
+        passwordLst.append(initialKey[position - 1])
 
     password = "".join(passwordLst)
     # Split the password in half (28-bits)
@@ -694,8 +702,8 @@ def Encrypt():
         iterator += 1
         lstCipher.append(FinalCipher)
         # lstCipher.append(hex(int(FinalCipher,2)))
-        print (lstCipher)
-        print (len(lstCipher))
+        # print (lstCipher)
+        # print (len(lstCipher))
     return lstCipher
 
 Encrypt()
@@ -720,7 +728,7 @@ def Decrypt():
     FinalCipher = ""
     cipher1 = ""
     iterator = len(lstCipher)-1
-    roundKeyGen(key1)
+    # roundKeyGen(key1)
     # PlaintextChunks(binPlainText)
 
     FP = [40, 8, 48, 16, 56, 24, 64, 32
@@ -758,10 +766,12 @@ def Decrypt():
         iterator -= 1
         lstDecrypt.append(FinalCipher)
         # lstCipher.append(hex(int(FinalCipher,2)))
-        print (lstDecrypt)
-        print (len(lstDecrypt))
+        # print (lstDecrypt)
+        # print (len(lstDecrypt))
 
     return lstCipher
 Decrypt()
 
-print ("Plaintext",lstPlainText)
+print ("Chunks",lstPlainText,len(lstPlainText[2]))
+print ("Cipher",lstCipher, len(lstCipher))
+print ("Decrypt",lstDecrypt, len(lstDecrypt))
