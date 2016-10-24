@@ -33,11 +33,6 @@ key1 = finalPassword[0:64]
 key2 = finalPassword[64:128]
 key3 = finalPassword[128:192]
 
-# print ("key1",len(key1))
-# print ("key2",len(key2))
-# print ("key3",len(key3))
-
-
 # Writing the keys to the file
 filegenKey = open("genKey.txt", "w")
 filegenKey.write(str(key1) + "\n")
@@ -50,23 +45,27 @@ hashKey2 = ""
 hashKey3 = ""
 iteration_counter = 0
 lstDecrypt = list()
+lstHashKeys = list ()
 
 
 
 # Reading the 3 hashed keys from the file one by one and storing them in the "hashkey" variables
 with open("genKey.txt") as genKey:
+
     for lines in genKey:
 
         if iteration_counter == 0:
             hashKey1 = lines.strip()
-
+            lstHashKeys.append(hashKey1)
         elif iteration_counter == 1:
             hashKey2 = lines.strip()
-
+            lstHashKeys.append(hashKey2)
         elif iteration_counter == 2:
             hashKey3 = lines.strip()
+            lstHashKeys.append(hashKey3)
 
         iteration_counter += 1
+
 
 genKey.close()
 
@@ -108,23 +107,18 @@ lstFeeder = list()
 def pkcs5():
     global binPlainText
     # Reading plaintext from the file
-    tempPlaintext = ""
-    paddedPlainText = ""
+
     concatPlainText = ""
     filePlainText = open("inputFile.txt", "r")
     copyPlaintext = ("\n".join(filePlainText.readlines()))
     filePlainText.close()
-    # Converting plaintext to Hexademical
-    filePlainText = open("inputFile.txt", "r")
-    copyPlaintext = ("\n".join(filePlainText.readlines()))
-    filePlainText.close()
+
     # Converting plaintext to Hexademical
     for bits in copyPlaintext:
         tempPlaintext = bits.encode('utf-8')
         paddedPlainText = binascii.hexlify(tempPlaintext)
         concatPlainText += (paddedPlainText).decode("utf-8")
 
-    # print(concatPlainText, len(concatPlainText))
     numbers = {0: "0", 1: "1", 2: "2", 3: "3", 4: "4", 5: "5", 6: "6", 7: "7", 8: "8", 9: "9", 10: "10", 11: "11", 12: "12",
                13: "13", 14: "14", 15: "15", 16: "16", 17: "17", 18: "18",
                19: "19", 20: "20", 21: "21", 22: "22", 23: "23", 24: "24", 25: "25", 26: "26", 27: "27", 28: "28", 29: "29",
@@ -150,9 +144,6 @@ def pkcs5():
 
 pkcs5()
 
-
-
-
 def PlaintextChunks(plaintext):
     global lstPlainText
     f = 0
@@ -175,16 +166,15 @@ PlaintextChunks(binPlainText)
 # Generating Initialization Vector
 totalPlainTextBlocks = int(len(binPlainText) / 64)
 randomIV = os.urandom(8)
+randomIV2 = os.urandom(8)
+randomIV3 = os.urandom(8)
+tmpIV = list([randomIV,randomIV2,randomIV3])
 
-for iteration in range(0, totalPlainTextBlocks):
-    randomIVHex = binascii.hexlify(randomIV)
+for iteration in tmpIV:
+    randomIVHex = binascii.hexlify(iteration)
     ivhexSize = len(randomIVHex)
     IV = (bin(int(randomIVHex, 16))[2:]).zfill(64)
     lstIV.append(IV)
-    IV += bin(1)
-    print (lstIV)
-
-
 
 def leftCircularShift(strBinary, j):
     iterator = [x for x in range(0, len(strBinary))]
@@ -225,11 +215,11 @@ def SecondPermutation(shiftkey):
     keyLst = list()
     for position in PC2:
 
-        if position > 48:
+        if position > 56:
             pass
 
         else:
-            if iteration_counter < 48:
+            if iteration_counter < 56:
                 keyLst.append(shiftkey[position - 1])
                 iteration_counter += 1
 
@@ -377,8 +367,6 @@ def roundKeyGen(key1):
 
 
 
-
-
 # This method performs the initial permutations
 
 def IP(iv):
@@ -440,7 +428,6 @@ def SBox(xorRK):  # This function performs the tedious S-Box implementation
 
     global sBlocks
     lstxorRK = xorRK
-    # print (lstxorRK)
 
     sBox1 = [14, 4, 13, 1, 2, 15, 11, 8, 3, 10, 6, 12, 5, 9, 0, 7,
              0, 15, 7, 4, 14, 2, 13, 1, 10, 6, 12, 11, 9, 5, 3, 8,
@@ -620,9 +607,6 @@ def PBox(sBlocks, lstLeftBits):
     global lstFeeder
     global pxor
 
-    # print(lstLeftBits, len(lstLeftBits), len(lstLeftBits[12]))
-    # print(lstBlocks, len(lstBlocks), len(lstBlocks[12]))
-
     tempPBox = list()
     strPBox = ""
 
@@ -645,7 +629,7 @@ def PBox(sBlocks, lstLeftBits):
 
     return pxor
 
-def Encrypt():
+def Encrypt(key,iVector):
     global feedEBox
     global LplusR
     global key1
@@ -657,6 +641,7 @@ def Encrypt():
     global lstPlainText
     global lstCipher
 
+    # key1 = key # Supplying the 1st key to the roundKeyGen(key1)
     loopcounter = 0
     EncryptExit = ""
     tempFP = list()
@@ -664,7 +649,8 @@ def Encrypt():
     FinalCipher = ""
     cipher1 = ""
     iterator = 0
-    roundKeyGen(key1)
+    roundKeyGen(key)
+    # iVector = lstIV[0] # Supplying the first IV to this variable. This IV will be used to encrypt with key1
     # PlaintextChunks(binPlainText)
 
     FP = [40, 8, 48, 16, 56, 24, 64, 32
@@ -676,18 +662,23 @@ def Encrypt():
         , 34, 2, 42, 10, 50, 18, 58, 26
         , 33, 1, 41, 9, 49, 17, 57, 25]
 
-    for iv in lstIV:
-        IP(iv)
+    # for iv in lstIV:
+    for plaintext in lstPlainText:
+        IP(iVector) # Applying Initial Permuatation to the IV
         LplusR = feedEBox
-        # c = lstIV.index(iv)
+
         while loopcounter < 16:
             leftBits = LplusR[0:32]
             rightBits = LplusR[32:64]
             EBox(leftBits, rightBits, loopcounter)
             SBox(xorRK)
             PBox(sBlocks, leftBits)
-            LplusR = str(rightBits) + str(pxor)
 
+            # Avoid Left and Right chunks swapping int he 16th round of Feistel function
+            if loopcounter != 15:
+                LplusR = str(rightBits) + str(pxor)
+
+            # Apply Inverse Permutation after the 16th Feistel Round
             if loopcounter == 15:
                 for position in FP:
                     tempFP.append(LplusR[position - 1])
@@ -701,12 +692,12 @@ def Encrypt():
         FinalCipher = bin(intCipher ^ intEncryptExit)[2:].zfill(64)
         iterator += 1
         lstCipher.append(FinalCipher)
-        # lstCipher.append(hex(int(FinalCipher,2)))
-        # print (lstCipher)
-        # print (len(lstCipher))
+       
+
     return lstCipher
 
-Encrypt()
+Encrypt(lstHashKeys[0],lstIV[0])
+
 
 def Decrypt():
     global feedEBox
@@ -744,6 +735,7 @@ def Decrypt():
         IP(lstCipher[i])
         LplusR = feedEBox
         # c = lstIV.index(iv)
+        print (lstCipher[i])
         while loopcounter >= 0:
             leftBits = LplusR[0:32]
             rightBits = LplusR[32:64]
@@ -774,4 +766,5 @@ Decrypt()
 
 print ("Chunks",lstPlainText,len(lstPlainText[2]))
 print ("Cipher",lstCipher, len(lstCipher))
-print ("Decrypt",lstDecrypt, len(lstDecrypt))
+# print ("Decrypt",lstDecrypt, len(lstDecrypt))
+ (lstHashKeys,len(lstHashKeys[1]))
