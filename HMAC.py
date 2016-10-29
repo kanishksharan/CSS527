@@ -28,7 +28,7 @@ def bitChunks32(s):
         print(BinBits)
         loopCounter += 1
 
-        return BinBits
+    return BinBits
 
 
 bitChunks32(str)
