@@ -1,7 +1,7 @@
 # Convert ASCII to Binary
 def ascii_bin(strng):
     str_binary = strng.encode("ascii")
-    addStrLen = format(int(len(strng)),'08b')
+    addStrLen = format(int(len(strng)),'08b').zfill(64)
     if int(len(strng)) % 4 != 0:
         binBits = "".join(format(x, '08b') for x in str_binary)
         binBits += "10000000"
