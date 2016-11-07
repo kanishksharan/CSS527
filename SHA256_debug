@@ -26,7 +26,6 @@ lst64Primes = list ([0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5,
           0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208,
           0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2])
 
-a,b,c,d,e,f,g,h = lstHashPrimes
 
 
 # Convert ASCII to Binary
@@ -44,11 +43,10 @@ def ascii_bin(strng, l):
 
     else:
         binBits += "".join(format(x, '08b') for x in str_binary)
-        # print (binBits)
         return binBits
 
 
-str = "abc"
+str = "ksharan"
 
 # This function gives the 16 Words in Hexadecimal
 def hexBits(strng):
@@ -58,7 +56,6 @@ def hexBits(strng):
         tempHex = strng[i:i + 32]
         hexWords = hex(int(tempHex,2))
         lstHexBits.append(hexWords)
-    print (lstHexBits)
     return lstHexBits
 
 # Divide input text in 32-bits chunks
@@ -81,6 +78,7 @@ def bitChunks32(s):
 
 bitChunks32(str)
 
+
 def rightRotate( x, y):
         return ((x >> y) | (x << (32-y))) & 0xFFFFFFFF
 
@@ -89,28 +87,32 @@ def rightRotate( x, y):
 # Unit test this part
 def rbitShifter():
     global lstHexBits
-    lstFeedHexBits = list ()
     for i in range (16,64):
-        s0 = rightRotate(int(lstHexBits[i-15],16),7) ^ rightRotate(int(lstHexBits[i-15],16),18) ^ rightRotate(int(lstHexBits[i-15],16),3)
-        s1 = rightRotate(int(lstHexBits[i-2],16),17) ^ rightRotate(int(lstHexBits[i-2],16),19) ^ rightRotate(int(lstHexBits[i-2],16),10)
+        s0 = rightRotate(int(lstHexBits[i-15],16),7) ^ rightRotate(int(lstHexBits[i-15],16),18) ^ (int(lstHexBits[i-15],16)>>3)
+        s1 = rightRotate(int(lstHexBits[i-2],16),17) ^ rightRotate(int(lstHexBits[i-2],16),19) ^ (int(lstHexBits[i-2],16)>>10)
         strng = (int(lstHexBits[i-16],16) + s0 + int(lstHexBits[i-7],16) + s1) & 0xFFFFFFFF
         lstHexBits.append(hex(strng))
-    print (lstHexBits)
-    print (len(lstHexBits))
     return lstHexBits
+
+# ---------------------------------------------------------------
+
+
+a,b,c,d,e,f,g,h = lstHashPrimes
+print (a,b,c,d,e,f,g,h)
+
 
 def compression(lstHashPrimes, lst64Primes):
     global lstHexBits
     global a, b, c, d, e, f, g, h
+    print (lstHexBits)
     lstDigest = list()
 
     for i in range(64):
-        S0 = rightRotate(a, 2) ^ rightRotate(a, 13) ^ rightRotate(a, 22)
         S1 = rightRotate(e, 6) ^ rightRotate(e, 11) ^ rightRotate(e, 25)
+        ch = (e & f) ^ ((~e) & g)
+        temp1 = h + S1 + ch + lst64Primes[i] + int(lstHexBits[i],16)
+        S0 = rightRotate(a, 2) ^ rightRotate(a, 13) ^ rightRotate(a, 22)
         maj = (a & b) ^ (a & c) ^ (b & c)
-        ch = (e & f) ^ (~int(e) & g)
-        print(type(S0), type(S1), type(maj), type(ch))
-        temp1 = lstHashPrimes[7] + S1 + ch + lst64Primes[i] + int(lstHexBits[i],16)
         temp2 = S0 + maj
 
         h = g
@@ -121,17 +123,19 @@ def compression(lstHashPrimes, lst64Primes):
         c = b
         b = a
         a = (temp1 + temp2) & 0xFFFFFFFF
-    lstHashPrimes[0] += (a) & 0xFFFFFFFF
-    lstHashPrimes[1] += (b) & 0xFFFFFFFF
-    lstHashPrimes[2] += (c) & 0xFFFFFFFF
-    lstHashPrimes[3] += (d) & 0xFFFFFFFF
-    lstHashPrimes[4] += (e) & 0xFFFFFFFF
-    lstHashPrimes[5] += (f) & 0xFFFFFFFF
-    lstHashPrimes[6] += (g) & 0xFFFFFFFF
-    lstHashPrimes[7] += (h) & 0xFFFFFFFF
+
+    lstHashPrimes[0] = (lstHashPrimes[0]+a) & 0xFFFFFFFF
+    lstHashPrimes[1] = (lstHashPrimes[1]+b) & 0xFFFFFFFF
+    lstHashPrimes[2] = (lstHashPrimes[2]+c) & 0xFFFFFFFF
+    lstHashPrimes[3] = (lstHashPrimes[3]+d) & 0xFFFFFFFF
+    lstHashPrimes[4] = (lstHashPrimes[4]+e) & 0xFFFFFFFF
+    lstHashPrimes[5] = (lstHashPrimes[5]+f) & 0xFFFFFFFF
+    lstHashPrimes[6] = (lstHashPrimes[6]+g) & 0xFFFFFFFF
+    lstHashPrimes[7] = (lstHashPrimes[7]+h) & 0xFFFFFFFF
+
+
     # self._h = [(x+y) & 0xFFFFFFFF for x,y in zip(self._h, [a,b,c,d,e,f,g,h])]
-    lstHashPrimes = [(x+y) & 0xFFFFFFFF for x,y in zip(lstHashPrimes, [a,b,c,d,e,f,g,h])]
-    print (lstHashPrimes)
+    # lstHashPrimes = [(x+y) & 0xFFFFFFFF for x,y in zip(lstHashPrimes, [a,b,c,d,e,f,g,h])]
     for j in lstHashPrimes:
         lstDigest.append(hex(j)[2:])
         print (lstDigest)
@@ -141,7 +145,5 @@ def compression(lstHashPrimes, lst64Primes):
     return "".join(lstDigest)
 
 
-
 rbitShifter()
 compression(lstHashPrimes, lst64Primes)
-
