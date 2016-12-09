@@ -1,0 +1,271 @@
+# This program compares the performance for Hash Functions
+
+from Crypto.Hash import SHA256
+import os
+import time
+
+print ("Copy paste the file \"test_file.txt\" at the below mentioned directory")
+print ("Our Current Working Directory is: %s"%(os.getcwd()))
+
+
+
+f_obj = open("test_file.txt","r")
+encrypt_me = f_obj.read()
+print(encrypt_me)
+print(len(encrypt_me))
+
+# #----------------------Using the SHA256 hash Function Pycrypto library-----------------------------
+# start_time = time.time()
+# hash = SHA256.new()
+# hash.update(encrypt_me)
+# hash.digest()
+
+# elapsed_time = time.time()-start_time
+# print(hash.digest())
+# print("Time taken to complete the task: %s secs" %(elapsed_time))
+
+
+# #----------------------Using the SHA1 Function from the Pycrypto library-----------------------------
+
+# from Crypto.Hash import SHA
+# start_time_2 = time.time()
+
+# hash_2 = SHA.new()
+# hash_2.update(encrypt_me)
+# hash_2.digest()
+
+# elapsed_time_2 = time.time()-start_time_2
+# print(hash_2.digest())
+# print("Time taken to complete the task: %s secs" %(elapsed_time_2))
+
+
+# #----------------------Using the SHA1 Function from the Native library-----------------------------
+
+# from hashlib import sha1
+
+# start_time_3 = time.time()
+
+# hash_3 = sha1(encrypt_me)
+
+# elapsed_time_3 = time.time()-start_time_3
+# print(hash_3.digest())
+# print("Time taken to complete the task: %s secs" %(elapsed_time_3))
+
+# #----------------------Using the SHA256 Function from the Native library-----------------------------
+
+# from hashlib import sha256
+
+# start_time_4 = time.time()
+
+# hash_4 = sha256(encrypt_me)
+
+# elapsed_time_4 = time.time()-start_time_4
+# print(hash_4.digest())
+# print("Time taken to complete the task: %s secs" %(elapsed_time_4))
+
+
+# #----------------------Using the SHA1 Function from the Cryptography library-----------------------------
+
+# from cryptography.hazmat.backends import default_backend
+# from cryptography.hazmat.primitives import hashes
+
+# hash_5 = hashes.Hash(hashes.SHA1(), backend=default_backend())
+
+# start_time_5 = time.time()
+
+# hash_5.update(encrypt_me)
+# print(hash_5.finalize())
+# elapsed_time_5 = time.time()-start_time_5
+# print("Time taken to complete the task: %s secs" %(elapsed_time_5))
+
+# #----------------------Using the SHA256 Function from the Cryptography library-----------------------------
+
+# from cryptography.hazmat.backends import default_backend
+# from cryptography.hazmat.primitives import hashes
+
+# hash_6 = hashes.Hash(hashes.SHA256(), backend=default_backend())
+
+# start_time_6 = time.time()
+
+# hash_6.update(encrypt_me)
+# print(hash_6.finalize())
+# elapsed_time_6 = time.time()-start_time_6
+# print("Time taken to complete the task: %s secs" %(elapsed_time_6))
+
+
+
+# ---------------------Block Ciphers--------------------------------------------------------------------------
+
+# ---------------------Using 3DES CBC mode using Cryptography Library------------------------------------------
+
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from cryptography.hazmat.backends import default_backend
+
+backend = default_backend()
+key = os.urandom(16)
+iv = os.urandom(8)
+
+cipher = Cipher(algorithms.TripleDES(key),modes.CBC(iv), backend=backend)
+
+start_time_7 = time.time()
+encryptor = cipher.encryptor()
+ct = encryptor.update(encrypt_me) + encryptor.finalize()
+elapsed_time_7 = time.time()-start_time_7
+# print(ct)
+print("Time taken to Encrypt the File: %s secs" %(elapsed_time_7))
+
+start_time_7b = time.time()
+
+decryptor = cipher.decryptor()
+d = decryptor.update(ct) + decryptor.finalize()
+elapsed_time_7b = time.time()-start_time_7b
+
+# print(d)
+print("Time taken to Decrypt the File: %s secs" %(elapsed_time_7b))
+
+# ---------------------Using 3DES CBC mode using PyCrypto Library------------------------------------------
+
+from Crypto.Cipher import DES3
+from Crypto import Random
+
+key = os.urandom(16)
+iv = Random.new().read(DES3.block_size)
+cipher = DES3.new(key, DES3.MODE_CBC, iv)
+plaintext = encrypt_me
+
+start_time_8 = time.time()
+msg = iv + cipher.encrypt(plaintext)
+elapsed_time_8 = time.time()-start_time_8
+
+# print(msg)
+print("Time taken to Encrypt the File: %s secs" %(elapsed_time_8))
+
+start_time_8b = time.time()
+d2 = cipher.decrypt(msg)
+elapsed_time_8b = time.time()-start_time_8b
+
+# print(d2)
+print("Time taken to Decrypt the File: %s secs" %(elapsed_time_8b))
+
+
+# ---------------------Using 3DES CBC mode using ChilKat Library------------------------------------------
+
+import chilkat
+
+start_time_9 = time.time()
+crypt = chilkat.CkCrypt2()
+
+
+crypt.put_CryptAlgorithm("3des")
+
+#  CipherMode may be "ecb" or "cbc"
+crypt.put_CipherMode("cbc")
+crypt.put_KeyLength(192)
+crypt.put_PaddingScheme(3)
+crypt.put_EncodingMode("hex")
+ivHex = "0001020304050607"
+
+
+crypt.SetEncodedIV(ivHex,"hex")
+keyHex = "000102030405060708090A0B0C0D0E0F0001020304050607"
+crypt.SetEncodedKey(keyHex,"hex")
+
+
+encStr = crypt.encryptStringENC(encrypt_me)
+
+print(encStr)
+elapsed_time_9 = time.time()-start_time_9
+print("Time taken to Encrypt the File: %s secs" %(elapsed_time_9))
+
+#  Now decrypt:
+start_time_9b = time.time()
+decStr = crypt.decryptStringENC(encStr)
+elapsed_time_9b = time.time()-start_time_9b
+print(decStr)
+print("Time taken to Decrypt the File: %s secs" %(elapsed_time_9b))
+
+
+# ---------------------Using AES CBC mode using Cryptography Library------------------------------------------
+
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from cryptography.hazmat.backends import default_backend
+backend = default_backend()
+key = os.urandom(32)
+iv = os.urandom(16)
+
+start_time_10 = time.time()
+cipher = Cipher(algorithms.AES(key), modes.CBC(iv), backend=backend)
+encryptor = cipher.encryptor()
+ct = encryptor.update(encrypt_me) + encryptor.finalize()
+elapsed_time_10 = time.time()-start_time_10
+# print(ct)
+print("Time taken to Encrypt the File: %s secs" %(elapsed_time_10))
+
+start_time_10b = time.time()
+decryptor = cipher.decryptor()
+d3 = decryptor.update(ct) + decryptor.finalize()
+elapsed_time_10b = time.time()-start_time_10b
+
+# print(d3)
+print("Time taken to Decrypt the File: %s secs" %(elapsed_time_10b))
+
+
+
+# ---------------------Using AES CBC mode using PyCrypto Library------------------------------------------
+
+from Crypto.Cipher import AES
+from Crypto import Random
+
+key = b'Sixteen byte key'
+iv = Random.new().read(AES.block_size)
+cipher = AES.new(key, AES.MODE_CFB, iv)
+
+start_time_11 = time.time()
+msg = iv + cipher.encrypt(encrypt_me)
+elapsed_time_11 = time.time()-start_time_11
+print("Time taken to Encrypt the File: %s secs" %(elapsed_time_11))
+
+start_time_11b = time.time()
+d4 = cipher.decrypt(msg)
+elapsed_time_11b = time.time()-start_time_11b
+
+# print(d4)
+print("Time taken to Decrypt the File: %s secs" %(elapsed_time_11b))
+
+# ---------------------Using AES CBC mode using ChilKat Library------------------------------------------
+
+import chilkat
+
+crypt = chilkat.CkCrypt2()
+
+#  AES is also known as Rijndael.
+crypt.put_CryptAlgorithm("aes")
+
+#  KeyLength may be 128, 192, 256
+crypt.put_KeyLength(256)
+
+crypt.put_PaddingScheme(0)
+
+crypt.put_EncodingMode("hex")
+
+ivHex = "000102030405060708090A0B0C0D0E0F"
+crypt.SetEncodedIV(ivHex,"hex")
+
+keyHex = "000102030405060708090A0B0C0D0E0F101112131415161718191A1B1C1D1E1F"
+crypt.SetEncodedKey(keyHex,"hex")
+start_time_12 = time.time()
+encStr = crypt.encryptStringENC(encrypt_me)
+elapsed_time_12 = time.time()-start_time_12
+print(encStr)
+print("Time taken to Encrypt the File: %s secs" %(elapsed_time_12))
+
+start_time_12b = time.time()
+#  Now decrypt:
+decStr = crypt.decryptStringENC(encStr)
+elapsed_time_12b = time.time()-start_time_12b
+print(decStr)
+print("Time taken to Encrypt the File: %s secs" %(elapsed_time_12b))
+
+
+# ---------------------Stream Ciphers--------------------------------------------------------------------------
+
